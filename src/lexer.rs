@@ -36,12 +36,50 @@ impl Lexer {
         self.position = self.read_position;
         self.read_position += 1
     }
+
+    fn get_identifier(&mut self) -> &str {
+        let position = self.position;
+        while self.is_letter() {
+            self.read_char()
+        }
+        &self.input[position..self.position]
+    }
+
+    fn is_letter(&self) -> bool {
+        'a' <= self.ch && self.ch <= 'z' || 'A' <= self.ch && self.ch <= 'Z' || self.ch == '_'
+    }
+
+    fn get_number(&mut self) -> Option<u64> {
+        let position = self.position;
+        while self.is_digit() {
+            self.read_char()
+        }
+        let piece = &self.input[position..self.position];
+        if let Ok(n) = piece.parse::<u64>() {
+            return Some(n);
+        }
+        None
+    }
+
+    fn is_digit(&self) -> bool {
+        if let Some(_) = self.ch.to_digit(10) {
+            return true;
+        }
+        return false;
+    }
+
+    fn skip_whitespace(&mut self) {
+        while self.ch == ' ' || self.ch == '\t' || self.ch == '\n' || self.ch == '\r' {
+            self.read_char()
+        }
+    }
 }
 
 impl Iterator for Lexer {
     type Item = TokenType;
 
     fn next(&mut self) -> Option<Self::Item> {
+        self.skip_whitespace();
         let tok = match self.ch {
             '=' => Some(TokenType::ASSIGN('=')),
             '+' => Some(TokenType::PLUS('+')),
@@ -52,7 +90,21 @@ impl Iterator for Lexer {
             ',' => Some(TokenType::COMMA(',')),
             ';' => Some(TokenType::SEMICOLON(';')),
             '\0' => Some(TokenType::EOF('\0')),
-            _ => None,
+            _ => {
+                if self.is_letter() {
+                    let ident = self.get_identifier();
+                    if let Some(tk) = TokenType::create(ident) {
+                        return Some(tk);
+                    }
+                } else if self.is_digit() {
+                    if let Some(n) = self.get_number() {
+                        return Some(TokenType::INT(n));
+                    }
+                } else {
+                    return None;
+                }
+                None
+            }
         };
         self.read_char();
         tok
@@ -76,15 +128,50 @@ mod tests {
 
     #[test]
     fn next_token() {
-        const INPUT: &str = "=+(){},;";
+        const INPUT: &str = "let five = 5;
+let ten = 10;
+let add = fn(x, y) {
+    x + y;
+}
+
+let result = add(five, ten);";
+
+        println!("{}", INPUT);
         let tests = vec![
+            TokenType::LET("let".to_string()),
+            TokenType::IDENT("five".to_string()),
             TokenType::ASSIGN('='),
-            TokenType::PLUS('+'),
+            TokenType::INT(5),
+            TokenType::SEMICOLON(';'),
+            TokenType::LET("let".to_string()),
+            TokenType::IDENT("ten".to_string()),
+            TokenType::ASSIGN('='),
+            TokenType::INT(10),
+            TokenType::SEMICOLON(';'),
+            TokenType::LET("let".to_string()),
+            TokenType::IDENT("add".to_string()),
+            TokenType::ASSIGN('='),
+            TokenType::FUNCTION("fn".to_string()),
             TokenType::LPAREN('('),
+            TokenType::IDENT("x".to_string()),
+            TokenType::COMMA(','),
+            TokenType::IDENT("y".to_string()),
             TokenType::RPAREN(')'),
             TokenType::LBRACE('{'),
+            TokenType::IDENT("x".to_string()),
+            TokenType::PLUS('+'),
+            TokenType::IDENT("y".to_string()),
+            TokenType::SEMICOLON(';'),
             TokenType::RBRACE('}'),
+            TokenType::LET("let".to_string()),
+            TokenType::IDENT("result".to_string()),
+            TokenType::ASSIGN('='),
+            TokenType::IDENT("add".to_string()),
+            TokenType::LPAREN('('),
+            TokenType::IDENT("five".to_string()),
             TokenType::COMMA(','),
+            TokenType::IDENT("ten".to_string()),
+            TokenType::RPAREN(')'),
             TokenType::SEMICOLON(';'),
             TokenType::EOF('\0'),
         ];
@@ -101,14 +188,6 @@ mod tests {
                     } else {
                         panic!("Test {} is not expected to be None", i)
                     }
-                }
-
-                // After running the lexer across all chars in input string,
-                // verify that EOF token is set properly.
-                if let Some(eof) = lex.next() {
-                    assert_eq!(eof, TokenType::EOF('\0'))
-                } else {
-                    panic!("Expected EOF got None")
                 }
             }
             Err(err) => panic!(err),

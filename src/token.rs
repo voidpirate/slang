@@ -5,7 +5,7 @@ use std::fmt::{Display, Formatter, Result};
 pub enum TokenType {
     EOF(char),
 
-    IDENT(char),
+    IDENT(String),
     INT(u64),
 
     ASSIGN(char),
@@ -19,13 +19,23 @@ pub enum TokenType {
     LBRACE(char),
     RBRACE(char),
 
-    FUNCTION(char),
-    LET(char),
+    FUNCTION(String),
+    LET(String),
+}
+
+impl TokenType {
+    pub fn create(s: &str) -> Option<TokenType> {
+        match s {
+            "fn" => Some(TokenType::FUNCTION(s.to_string())),
+            "let" => Some(TokenType::LET(s.to_string())),
+            s => Some(TokenType::IDENT(s.to_string())),
+        }
+    }
 }
 
 impl Display for TokenType {
     fn fmt(&self, f: &mut Formatter) -> Result {
-        let tk = match *self {
+        let tk = match &*self {
             TokenType::EOF(c) => c.to_string(),
             TokenType::IDENT(c) => c.to_string(),
             TokenType::INT(c) => c.to_string(),
