@@ -93,7 +93,11 @@ mod tests {
             Ok(mut lex) => {
                 for (i, test_token) in tests.iter().enumerate() {
                     if let Some(tok) = lex.next() {
-                        assert_eq!(test_token, &tok, "Test {} failed", i)
+                        assert_eq!(
+                            test_token, &tok,
+                            "Test {} failed, expected token: {}",
+                            i, test_token
+                        )
                     } else {
                         panic!("Test {} is not expected to be None", i)
                     }
