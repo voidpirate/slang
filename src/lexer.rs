@@ -1,4 +1,5 @@
 use crate::token::TokenType;
+use std::iter::Iterator;
 
 #[derive(Debug)]
 pub struct Lexer {
@@ -24,23 +25,6 @@ impl Lexer {
         Ok(lex)
     }
 
-    pub fn next_token(&mut self) -> TokenType {
-        let tok = match self.ch {
-            '=' => TokenType::ASSIGN('='),
-            '+' => TokenType::PLUS('+'),
-            '(' => TokenType::LPAREN('('),
-            ')' => TokenType::RPAREN(')'),
-            '{' => TokenType::LBRACE('{'),
-            '}' => TokenType::RBRACE('}'),
-            ',' => TokenType::COMMA(','),
-            ';' => TokenType::SEMICOLON(';'),
-            '\0' => TokenType::EOF('\0'),
-            _ => TokenType::ILLEGAL(),
-        };
-        self.read_char();
-        tok
-    }
-
     fn read_char(&mut self) {
         if self.read_position >= self.input.len() {
             self.ch = '\0';
@@ -51,6 +35,27 @@ impl Lexer {
         }
         self.position = self.read_position;
         self.read_position += 1
+    }
+}
+
+impl Iterator for Lexer {
+    type Item = TokenType;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        let tok = match self.ch {
+            '=' => Some(TokenType::ASSIGN('=')),
+            '+' => Some(TokenType::PLUS('+')),
+            '(' => Some(TokenType::LPAREN('(')),
+            ')' => Some(TokenType::RPAREN(')')),
+            '{' => Some(TokenType::LBRACE('{')),
+            '}' => Some(TokenType::RBRACE('}')),
+            ',' => Some(TokenType::COMMA(',')),
+            ';' => Some(TokenType::SEMICOLON(';')),
+            '\0' => Some(TokenType::EOF('\0')),
+            _ => None,
+        };
+        self.read_char();
+        tok
     }
 }
 
@@ -72,7 +77,6 @@ mod tests {
     #[test]
     fn next_token() {
         const INPUT: &str = "=+(){},;";
-
         let tests = vec![
             TokenType::ASSIGN('='),
             TokenType::PLUS('+'),
@@ -88,14 +92,20 @@ mod tests {
         match Lexer::new(Some(INPUT)) {
             Ok(mut lex) => {
                 for (i, test_token) in tests.iter().enumerate() {
-                    let tok = lex.next_token();
-                    assert_eq!(test_token, &tok, "Test {} failed", i)
+                    if let Some(tok) = lex.next() {
+                        assert_eq!(test_token, &tok, "Test {} failed", i)
+                    } else {
+                        panic!("Test {} is not expected to be None", i)
+                    }
                 }
 
                 // After running the lexer across all chars in input string,
                 // verify that EOF token is set properly.
-                let eof = lex.next_token();
-                assert_eq!(eof, TokenType::EOF('\0'))
+                if let Some(eof) = lex.next() {
+                    assert_eq!(eof, TokenType::EOF('\0'))
+                } else {
+                    panic!("Expected EOF got None")
+                }
             }
             Err(err) => panic!(err),
         }
