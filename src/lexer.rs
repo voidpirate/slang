@@ -6,6 +6,8 @@ pub struct Lexer {
     input: String,
     position: usize,
     read_position: usize,
+    line_number: u32,
+    column: u32,
     ch: char,
 }
 
@@ -19,6 +21,8 @@ impl Lexer {
             input: input.unwrap().to_string(),
             position: 0,
             read_position: 0,
+            line_number: 1,
+            column: 1,
             ch: input.unwrap().chars().nth(0).unwrap(),
         };
         lex.read_char();
@@ -28,14 +32,21 @@ impl Lexer {
     fn read_char(&mut self) {
         if self.read_position >= self.input.len() {
             self.ch = '\0';
+            return;
+        }
+
+        if let Some(c) = self.input.chars().nth(self.read_position) {
+            self.ch = c;
+        }
+        if self.ch == '\n' {
+            self.line_number += 1;
+            self.column = 1;
         } else {
-            if let Some(c) = self.input.chars().nth(self.read_position) {
-                self.ch = c;
-            }
+            self.column += 1;
         }
 
         self.position = self.read_position;
-        self.read_position += 1
+        self.read_position += 1;
     }
 
     fn peek_char(&mut self) -> char {
@@ -260,16 +271,40 @@ if (5 < 10) {
                 for (i, test_token) in tests.iter().enumerate() {
                     if let Some(tok) = lex.next() {
                         assert_eq!(
-                            test_token, &tok,
-                            "Test {} failed, expected token: {}",
-                            i, test_token
+                            test_token,
+                            &tok,
+                            "{}",
+                            get_lexer_test_error(i, test_token, Some(&tok), &lex)
                         )
                     } else {
-                        panic!("Test {} is not expected to be None", i)
+                        panic!(get_lexer_test_error(i, test_token, None, &lex))
                     }
                 }
             }
             Err(err) => panic!(err),
         }
+    }
+
+    fn get_line_number_and_column(lex: &Lexer) -> String {
+        format!("Line: {}, Column: {}", lex.line_number, lex.column)
+    }
+
+    fn get_lexer_test_error(
+        test_num: usize,
+        test_token: &TokenType,
+        token: Option<&TokenType>,
+        lex: &Lexer,
+    ) -> String {
+        format!(
+            "Test case ({}): Expected TokenType: {}, Got TokenType: {}. {}",
+            test_num,
+            test_token,
+            if let Some(tk) = token {
+                tk.to_string()
+            } else {
+                "None".to_string()
+            },
+            get_line_number_and_column(lex)
+        )
     }
 }
