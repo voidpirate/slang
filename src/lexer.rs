@@ -33,8 +33,19 @@ impl Lexer {
                 self.ch = c;
             }
         }
+
         self.position = self.read_position;
         self.read_position += 1
+    }
+
+    fn peek_char(&mut self) -> char {
+        if self.read_position > self.input.len() {
+            return '\0';
+        }
+        if let Some(c) = self.input.chars().nth(self.read_position) {
+            return c;
+        }
+        '\0'
     }
 
     fn get_identifier(&mut self) -> &str {
@@ -81,8 +92,28 @@ impl Iterator for Lexer {
     fn next(&mut self) -> Option<Self::Item> {
         self.skip_whitespace();
         let tok = match self.ch {
-            '=' => Some(TokenType::ASSIGN('=')),
+            '=' => {
+                if self.peek_char() == '=' {
+                    self.read_char();
+                    Some(TokenType::EQ(['=', '=']))
+                } else {
+                    Some(TokenType::ASSIGN('='))
+                }
+            }
             '+' => Some(TokenType::PLUS('+')),
+            '-' => Some(TokenType::MINUS('-')),
+            '!' => {
+                if self.peek_char() == '=' {
+                    self.read_char();
+                    Some(TokenType::NOTEQ(['!', '=']))
+                } else {
+                    Some(TokenType::BANG('!'))
+                }
+            }
+            '*' => Some(TokenType::ASTERISK('*')),
+            '/' => Some(TokenType::SLASH('/')),
+            '>' => Some(TokenType::GT('>')),
+            '<' => Some(TokenType::LT('<')),
             '(' => Some(TokenType::LPAREN('(')),
             ')' => Some(TokenType::RPAREN(')')),
             '{' => Some(TokenType::LBRACE('{')),
@@ -93,7 +124,7 @@ impl Iterator for Lexer {
             _ => {
                 if self.is_letter() {
                     let ident = self.get_identifier();
-                    if let Some(tk) = TokenType::create(ident) {
+                    if let Some(tk) = TokenType::create_keyword(ident) {
                         return Some(tk);
                     }
                 } else if self.is_digit() {
@@ -106,6 +137,7 @@ impl Iterator for Lexer {
                 None
             }
         };
+
         self.read_char();
         tok
     }
@@ -134,7 +166,18 @@ let add = fn(x, y) {
     x + y;
 }
 
-let result = add(five, ten);";
+let result = add(five, ten);
+!-/*5
+5 < 10 > 5;
+
+if (5 < 10) {
+    return true;
+} else {
+    return false;
+}
+
+10 == 10;
+10 != 9;";
 
         println!("{}", INPUT);
         let tests = vec![
@@ -172,6 +215,42 @@ let result = add(five, ten);";
             TokenType::COMMA(','),
             TokenType::IDENT("ten".to_string()),
             TokenType::RPAREN(')'),
+            TokenType::SEMICOLON(';'),
+            TokenType::BANG('!'),
+            TokenType::MINUS('-'),
+            TokenType::SLASH('/'),
+            TokenType::ASTERISK('*'),
+            TokenType::INT(5),
+            TokenType::INT(5),
+            TokenType::LT('<'),
+            TokenType::INT(10),
+            TokenType::GT('>'),
+            TokenType::INT(5),
+            TokenType::SEMICOLON(';'),
+            TokenType::IF("if".to_string()),
+            TokenType::LPAREN('('),
+            TokenType::INT(5),
+            TokenType::LT('<'),
+            TokenType::INT(10),
+            TokenType::RPAREN(')'),
+            TokenType::LBRACE('{'),
+            TokenType::RETURN("return".to_string()),
+            TokenType::TRUE,
+            TokenType::SEMICOLON(';'),
+            TokenType::RBRACE('}'),
+            TokenType::ELSE("else".to_string()),
+            TokenType::LBRACE('{'),
+            TokenType::RETURN("return".to_string()),
+            TokenType::FALSE,
+            TokenType::SEMICOLON(';'),
+            TokenType::RBRACE('}'),
+            TokenType::INT(10),
+            TokenType::EQ(['=', '=']),
+            TokenType::INT(10),
+            TokenType::SEMICOLON(';'),
+            TokenType::INT(10),
+            TokenType::NOTEQ(['!', '=']),
+            TokenType::INT(9),
             TokenType::SEMICOLON(';'),
             TokenType::EOF('\0'),
         ];
