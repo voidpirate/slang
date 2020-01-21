@@ -3,7 +3,7 @@ use std::fmt::{Display, Formatter, Result};
 
 #[derive(Debug, PartialEq)]
 pub enum TokenType {
-    EOF(char),
+    EOF(),
 
     IDENT(String),
     INT(u64),
@@ -61,7 +61,7 @@ impl TokenType {
 impl Display for TokenType {
     fn fmt(&self, f: &mut Formatter) -> Result {
         let tk = match &*self {
-            TokenType::EOF(c) => c.to_string(),
+            TokenType::EOF() => '\0'.to_string(),
             TokenType::IDENT(c) => c.to_string(),
             TokenType::INT(c) => c.to_string(),
             TokenType::ASSIGN(c) => c.to_string(),
