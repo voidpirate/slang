@@ -16,7 +16,7 @@ fn main() {
                 Ok(lex) => print_tokens_from_line(lex),
                 Err(error) => println!("{}", error),
             },
-            Err(error) => println!("error: {}", error),
+            Err(error) => println!("REPL error: {}", error),
         }
     }
 }
