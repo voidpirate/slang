@@ -17,13 +17,22 @@ impl Lexer {
             return Err("Lexer: invalid source");
         }
 
+        // Check that we can initialize the lexer to the first character from
+        // the input string
+        let input = input.unwrap();
+        let first_ch = if let Some(c) = input.chars().nth(0) {
+            c
+        } else {
+            '\0'
+        };
+
         let mut lex = Lexer {
-            input: input.unwrap().to_string(),
+            input: input.to_string(),
             position: 0,
             read_position: 0,
             line_number: 1,
             column: 1,
-            ch: input.unwrap().chars().nth(0).unwrap(),
+            ch: first_ch,
         };
         lex.read_char();
         Ok(lex)
@@ -35,9 +44,14 @@ impl Lexer {
             return;
         }
 
-        if let Some(c) = self.input.chars().nth(self.read_position) {
-            self.ch = c;
+        if self.read_position > 0 {
+            if let Some(c) = self.input.chars().nth(self.read_position) {
+                self.ch = c
+            } else {
+                self.ch = '\0'
+            }
         }
+
         if self.ch == '\n' {
             self.line_number += 1;
             self.column = 1;
