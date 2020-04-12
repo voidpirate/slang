@@ -9,8 +9,11 @@ fn main() {
     println!("Slang {}", VERSION);
 
     loop {
+        if print_prompt().is_err() {
+            println!("Error printing prompt")
+        }
+
         let mut input = String::new();
-        print_prompt();
         match stdin().read_line(&mut input) {
             Ok(_) => match Lexer::new(Some(&input)) {
                 Ok(lex) => print_tokens_from_line(lex),
@@ -30,10 +33,9 @@ fn print_tokens_from_line(lex: Lexer) {
     }
 }
 
-fn print_prompt() {
+fn print_prompt() -> std::io::Result<()> {
     print!("{}", PROMPT);
-    let flush_res = stdout().flush();
-    if !flush_res.is_ok() {
-        println!("Unable to flush stdout buffer")
-    }
+
+    // Call flush to emit lines immediately for line buffered stdout
+    stdout().flush()
 }
