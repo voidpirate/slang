@@ -101,7 +101,7 @@ impl Lexer {
         if let Some(_) = self.ch.to_digit(10) {
             return true;
         }
-        return false;
+        false
     }
 
     fn skip_whitespace(&mut self) {
