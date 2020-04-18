@@ -53,14 +53,14 @@ impl TokenType {
         }
     }
 
-    fn print_equality(&self, c: &[char; 2]) -> String {
+    fn print_equality(&self, c: [char; 2]) -> String {
         format!("{}{}", c[0], c[1])
     }
 }
 
 impl Display for TokenType {
     fn fmt(&self, f: &mut Formatter) -> Result {
-        let tk = match &*self {
+        let tk = match &self {
             TokenType::EOF() => '\0'.to_string(),
             TokenType::IDENT(c) => c.to_string(),
             TokenType::INT(c) => c.to_string(),
@@ -72,8 +72,8 @@ impl Display for TokenType {
             TokenType::SLASH(c) => c.to_string(),
             TokenType::LT(c) => c.to_string(),
             TokenType::GT(c) => c.to_string(),
-            TokenType::EQ(c) => self.print_equality(c),
-            TokenType::NOTEQ(c) => self.print_equality(c),
+            TokenType::EQ(c) => self.print_equality(*c),
+            TokenType::NOTEQ(c) => self.print_equality(*c),
             TokenType::COMMA(c) => c.to_string(),
             TokenType::SEMICOLON(c) => c.to_string(),
             TokenType::LPAREN(c) => c.to_string(),
