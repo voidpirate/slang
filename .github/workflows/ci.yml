@@ -28,13 +28,13 @@ jobs:
         with:
           command: test
 
-      - name: Run cargo fmt
+      - name: Cargo fmt
         uses: actions-rs/cargo@v1
         with:
           command: fmt
           args: --all -- --check
 
-      - name: Run cargo clippy
+      - name: Cargo clippy
         uses: actions-rs/cargo@v1
         with:
           command: clippy
