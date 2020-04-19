@@ -20,7 +20,7 @@ impl Lexer {
         // Check that we can initialize the lexer to the first character from
         // the input string
         let input = input.unwrap();
-        let first_ch = if let Some(c) = input.chars().nth(0) {
+        let first_ch = if let Some(c) = input.chars().next() {
             c
         } else {
             '\0'
@@ -98,10 +98,7 @@ impl Lexer {
     }
 
     fn is_digit(&self) -> bool {
-        if let Some(_) = self.ch.to_digit(10) {
-            return true;
-        }
-        return false;
+        self.ch.is_digit(10)
     }
 
     fn skip_whitespace(&mut self) {
