@@ -85,13 +85,21 @@ impl Lexer {
         'a' <= self.ch && self.ch <= 'z' || 'A' <= self.ch && self.ch <= 'Z' || self.ch == '_'
     }
 
-    fn get_number(&mut self) -> Option<u64> {
+    fn get_number(&mut self) -> Option<i64> {
         let position = self.position;
-        while self.is_digit() {
-            self.read_char()
+        let mut read_sign = false;
+        while self.is_digit() || self.ch == '-' {
+            if self.ch == '-' && !read_sign {
+                read_sign = true;
+            } else if self.ch == '-' && read_sign {
+                // Return None here to signal we have an invalid number. Later
+                // we will add syntax errors, because this would be one.
+                return None;
+            }
+            self.read_char();
         }
         let piece = &self.input[position..self.position];
-        if let Ok(n) = piece.parse::<u64>() {
+        if let Ok(n) = piece.parse::<i64>() {
             return Some(n);
         }
         None
@@ -123,7 +131,15 @@ impl Iterator for Lexer {
                 }
             }
             '+' => Some(TokenType::PLUS('+')),
-            '-' => Some(TokenType::MINUS('-')),
+            '-' => {
+                // Peek the next character to see if this is a signed number
+                if self.peek_char().is_digit(10) {
+                    if let Some(num) = self.get_number() {
+                        return Some(TokenType::INT(num));
+                    }
+                }
+                Some(TokenType::MINUS('-'))
+            }
             '!' => {
                 if self.peek_char() == '=' {
                     self.read_char();
@@ -206,7 +222,8 @@ if (5 < 10) {
 }
 
 10 == 10;
-10 != 9;";
+10 != 9;
+let n = -10;";
 
         println!("{}", INPUT);
         let tests = vec![
@@ -280,6 +297,11 @@ if (5 < 10) {
             TokenType::INT(10),
             TokenType::NOTEQ(['!', '=']),
             TokenType::INT(9),
+            TokenType::SEMICOLON(';'),
+            TokenType::LET("let".to_string()),
+            TokenType::IDENT("n".to_string()),
+            TokenType::ASSIGN('='),
+            TokenType::INT(-10),
             TokenType::SEMICOLON(';'),
             TokenType::EOF,
         ];
