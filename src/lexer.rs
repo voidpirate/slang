@@ -181,6 +181,17 @@ mod tests {
     }
 
     #[test]
+    fn empty_input_source() {
+        const INPUT_SRC: &str = "";
+        let lexer = Lexer::new(Some(INPUT_SRC));
+        assert!(lexer.is_ok());
+
+        let tok = lexer.unwrap().next();
+        assert!(tok.is_some());
+        assert_eq!(TokenType::EOF, tok.unwrap())
+    }
+
+    #[test]
     fn next_token() {
         const INPUT: &str = "let five = 5;
 let ten = 10;
