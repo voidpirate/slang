@@ -6,7 +6,7 @@ pub enum TokenType {
     EOF,
 
     IDENT(String),
-    INT(i64),
+    INT(u64),
 
     // Operator
     ASSIGN(char),
