@@ -173,11 +173,7 @@ mod tests {
 
     #[test]
     fn none_input_source() {
-        if let Err(e) = Lexer::new(None) {
-            assert_eq!(e, "Lexer: invalid source")
-        } else {
-            panic!("Lexer None case failed")
-        }
+        assert!(Lexer::new(None).is_err())
     }
 
     #[test]
