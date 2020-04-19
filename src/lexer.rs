@@ -142,7 +142,7 @@ impl Iterator for Lexer {
             '}' => Some(TokenType::RBRACE('}')),
             ',' => Some(TokenType::COMMA(',')),
             ';' => Some(TokenType::SEMICOLON(';')),
-            '\0' => Some(TokenType::EOF()),
+            '\0' => Some(TokenType::EOF),
             _ => {
                 if self.is_letter() {
                     let ident = self.get_identifier();
@@ -274,7 +274,7 @@ if (5 < 10) {
             TokenType::NOTEQ(['!', '=']),
             TokenType::INT(9),
             TokenType::SEMICOLON(';'),
-            TokenType::EOF(),
+            TokenType::EOF,
         ];
 
         match Lexer::new(Some(INPUT)) {

@@ -26,7 +26,7 @@ fn main() {
 
 fn print_tokens_from_line(lex: Lexer) {
     for token in lex {
-        if token == TokenType::EOF() {
+        if token == TokenType::EOF {
             break;
         }
         println!("Token: {:?}", token)
