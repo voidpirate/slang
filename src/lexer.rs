@@ -146,9 +146,11 @@ impl Iterator for Lexer {
             _ => {
                 if self.is_letter() {
                     let ident = self.get_identifier();
-                    if let Some(tk) = TokenType::create_keyword(ident) {
-                        return Some(tk);
+                    let keyword = TokenType::create_keyword(ident);
+                    if keyword.is_none() {
+                        return Some(TokenType::IDENT(ident.to_string()));
                     }
+                    return keyword;
                 } else if self.is_digit() {
                     if let Some(n) = self.get_number() {
                         return Some(TokenType::INT(n));

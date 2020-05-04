@@ -49,7 +49,7 @@ impl TokenType {
             "if" => Some(TokenType::IF(s.to_string())),
             "else" => Some(TokenType::ELSE(s.to_string())),
             "return" => Some(TokenType::RETURN(s.to_string())),
-            s => Some(TokenType::IDENT(s.to_string())),
+            _ => None,
         }
     }
 
