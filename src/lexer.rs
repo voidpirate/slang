@@ -1,4 +1,5 @@
 use crate::token::TokenType;
+use std::convert::TryFrom;
 use std::iter::Iterator;
 
 #[derive(Debug)]
@@ -86,15 +87,34 @@ impl Lexer {
     }
 
     fn get_number(&mut self) -> Option<u64> {
-        let position = self.position;
+        let mut reg_num: u64 = 0;
         while self.is_digit() {
-            self.read_char();
+            // Convert the char to base 10 and build the final integer value
+            // incrementally, instead of doing the cast after the number
+            // string has been read.
+            let num = self.ch.to_digit(10);
+            if num.is_none() {
+                return None;
+            }
+
+            let num: Option<u64> = match u64::try_from(num.unwrap()) {
+                Ok(n) => Some(n),
+                Err(e) => {
+                    eprintln!(
+                        "u32 -> u64 type conversion failed for value {:?}, error: {}",
+                        num, e
+                    );
+                    None
+                }
+            };
+
+            if num.is_none() {
+                return None;
+            }
+            reg_num = reg_num * 10 + num.unwrap();
+            self.read_char()
         }
-        let piece = &self.input[position..self.position];
-        if let Ok(n) = piece.parse::<u64>() {
-            return Some(n);
-        }
-        None
+        Some(reg_num)
     }
 
     fn is_digit(&self) -> bool {
