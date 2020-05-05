@@ -229,7 +229,8 @@ if (5 < 10) {
 
 10 == 10;
 10 != 9;
-let n = -10;";
+let n = -10;
+let num = 99988;";
 
         println!("{}", INPUT);
         let tests = vec![
@@ -310,6 +311,11 @@ let n = -10;";
             TokenType::ASSIGN('='),
             TokenType::MINUS('-'),
             TokenType::INT(10),
+            TokenType::SEMICOLON(';'),
+            TokenType::LET("let".to_string()),
+            TokenType::IDENT("num".to_string()),
+            TokenType::ASSIGN('='),
+            TokenType::INT(99988),
             TokenType::SEMICOLON(';'),
             TokenType::EOF,
         ];
